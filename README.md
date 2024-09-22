@@ -9,7 +9,7 @@
 `@rebackk/pocketbase-adapter` is an adapter that integrates [PocketBase](https://pocketbase.io) with [NextAuth.js](https://next-auth.js.org) for authentication, enabling seamless user management and session handling using PocketBase's collections and features.
 
 ## Pocketbase Setup
-The Schema Used By Us For The Project is Mentioned [Here](https://github.com/Rebackk-Team/pocketbase-adapter/pocketbase/schema.json)
+The Schema Used By Us For The Project is Mentioned [Here](https://github.com/Rebackk-Team/pocketbase-adapter/blob/main/pocketbase/schema.json)
 > PS : Setup Roles According To Your Needs
 
 ## Features
