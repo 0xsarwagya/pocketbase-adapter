@@ -1,8 +1,8 @@
 # @rebackk/pocketbase-adapter
 
-[![npm version](https://badge.fury.io/js/%40rebackk%2Fpocketbase-adapter.svg)](https://www.npmjs.com/package/@rebackk/pocketbase-adapter)
-[![License](https://img.shields.io/npm/l/@rebackk/pocketbase-adapter)](LICENSE)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/rebackk/pocketbase-adapter/ci.yml)](https://github.com/rebackk/pocketbase-adapter/actions)
+[![dependency - @rebackk/pocketbase-adapter](https://img.shields.io/badge/dependency-%40rebackk%2Fpocketbase--adapter-blue?logo=npm&logoColor=white)](https://www.npmjs.com/package/@rebackk/pocketbase-adapter)
+
+[![Package - @rebackk/pocketbase-adapter](https://img.shields.io/github/package-json/dependency-version/Rebackk-Team/pocketbase-adapter/@rebackk/pocketbase-adapter?logo=npm&logoColor=white&color=blue)](https://www.npmjs.com/package/@rebackk/pocketbase-adapter)
 
 ## Overview
 

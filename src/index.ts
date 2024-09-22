@@ -1,10 +1,10 @@
 import type {
-	Adapter,
-	AdapterAccount,
-	AdapterAccountType,
-	AdapterAuthenticator,
-	AdapterSession,
-	AdapterUser,
+  Adapter,
+  AdapterAccount,
+  AdapterAccountType,
+  AdapterAuthenticator,
+  AdapterSession,
+  AdapterUser,
 } from "@auth/core/adapters";
 import type Pocketbase from "pocketbase";
 
@@ -14,506 +14,515 @@ import type Pocketbase from "pocketbase";
  * @returns An adapter implementing the NextAuth Adapter interface.
  */
 export function PocketbaseAdapter(client: Pocketbase): Adapter {
-	const p = client;
+  const p = client;
 
-	return {
-		/**
-		 * Creates a new user in the Pocketbase collection.
-		 * @param id - The ID is ignored as Pocketbase generates it.
-		 * @param data - The user data to be stored.
-		 * @returns The created user object.
-		 */
-		createUser: async ({ id, ...data }) => {
-			const createdUser = await p.collection("users").create({
-				user_email: data.email,
-				user_email_verified: data.emailVerified?.toString(),
-				user_image: data.image,
-				user_name: data.name,
-			});
+  return {
+    /**
+     * Creates a new user in the Pocketbase collection.
+     * @param id - The ID is ignored as Pocketbase generates it.
+     * @param data - The user data to be stored.
+     * @returns The created user object.
+     */
+    createUser: async ({ id, ...data }) => {
+      const createdUser = await p.collection("users").create({
+        user_email: data.email,
+        user_email_verified: data.emailVerified?.toString(),
+        user_image: data.image,
+        user_name: data.name,
+      });
 
-			return {
-				email: createdUser.user_email,
-				emailVerified: new Date(createdUser.user_email_verified),
-				id: createdUser.id,
-				image: createdUser.user_image,
-				name: createdUser.user_name,
-			} satisfies AdapterUser;
-		},
+      return {
+        email: createdUser.user_email,
+        emailVerified: new Date(createdUser.user_email_verified),
+        id: createdUser.id,
+        image: createdUser.user_image,
+        name: createdUser.user_name,
+      } satisfies AdapterUser;
+    },
 
-		/**
-		 * Retrieves a user by their ID.
-		 * @param id - The ID of the user.
-		 * @returns The user object.
-		 */
-		getUser: (id) => {
-			return p.collection("users").getOne(id);
-		},
+    /**
+     * Retrieves a user by their ID.
+     * @param id - The ID of the user.
+     * @returns The user object.
+     */
+    getUser: (id) => {
+      return p.collection("users").getOne(id);
+    },
 
-		/**
-		 * Retrieves a user by their email address.
-		 * @param email - The email of the user.
-		 * @returns The user object or null if not found.
-		 */
-		getUserByEmail(email) {
-			return p.collection("users").getFirstListItem(`user_email = "${email}"`);
-		},
+    /**
+     * Retrieves a user by their email address.
+     * @param email - The email of the user.
+     * @returns The user object or null if not found.
+     */
+    getUserByEmail(email) {
+      return p.collection("users").getFirstListItem(`user_email = "${email}"`);
+    },
 
-		/**
-		 * Retrieves a user associated with a specific account.
-		 * @param provider_providerAccountId - The provider account ID.
-		 * @returns The user object.
-		 * @throws Error if the account is not found.
-		 */
-		async getUserByAccount(providerProviderAccountId) {
-			const account = await p
-				.collection("accounts")
-				.getFirstListItem(
-					`account_provider_account_id = "${providerProviderAccountId.providerAccountId}" && account_provider = "${providerProviderAccountId.provider}"`,
-				);
+    /**
+     * Retrieves a user associated with a specific account.
+     * @param provider_providerAccountId - The provider account ID.
+     * @returns The user object.
+     * @throws Error if the account is not found.
+     */
+    async getUserByAccount(providerProviderAccountId) {
+      const account = await p.collection("accounts").getList(1, 1, {
+        filter: `account_provider_account_id = "${providerProviderAccountId.providerAccountId}" && account_provider = "${providerProviderAccountId.provider}"`,
+      });
 
-			// Check if the account exists
-			if (!account) {
-				throw new Error("Account not found");
-			}
+      process.stdout.write(`User ID: ${JSON.stringify(account)}\n`);
 
-			// Get the related user using the account_user_id
-			const userId = account.account_user_id;
-			const user = await p.collection("users").getOne(userId[0]);
+      // Check if the account exists
+      if (!account || !account.items || account.items.length === 0) {
+        throw new Error("Account not found");
+      }
 
-			// Return the user details
-			return {
-				email: user.user_email,
-				emailVerified: new Date(user.user_email_verified),
-				id: user.id,
-				image: user.user_image,
-				name: user.user_name,
-			} satisfies AdapterUser;
-		},
+      // Get the related user using the account_user_id
+      const userId = account.items
+        ? account.items[0]
+          ? account.items[0].account_user_id
+          : null
+        : null;
 
-		/**
-		 * Updates an existing user in the Pocketbase collection.
-		 * @param id - The ID of the user to update.
-		 * @param data - The new user data.
-		 * @returns The updated user object.
-		 */
-		async updateUser({ id, ...data }) {
-			const updatedUser = await p.collection("users").update(id, {
-				user_email: data.email,
-				user_email_verified: data.emailVerified?.toString(),
-				user_image: data.image,
-				user_name: data.name,
-			});
+      if (!userId) {
+        throw new Error("Account not found");
+      }
 
-			return {
-				email: updatedUser.user_email,
-				emailVerified: new Date(updatedUser.user_email_verified),
-				id: updatedUser.id,
-				image: updatedUser.user_image,
-				name: updatedUser.user_name,
-			} satisfies AdapterUser;
-		},
+      const user = await p.collection("users").getOne(userId[0]);
 
-		/**
-		 * Deletes a user by their ID.
-		 * @param id - The ID of the user to delete.
-		 */
-		deleteUser: (id) => {
-			p.collection("users").delete(id);
-			return void 0;
-		},
+      // Return the user details
+      return {
+        email: user.user_email,
+        emailVerified: new Date(user.user_email_verified),
+        id: user.id,
+        image: user.user_image,
+        name: user.user_name,
+      } satisfies AdapterUser;
+    },
 
-		/**
-		 * Links an account to a user.
-		 * @param data - The account data to link.
-		 */
-		linkAccount: (data) => {
-			p.collection("accounts").create({
-				account_provider_account_id: data.providerAccountId,
-				account_provider_id: data.providerId,
-				account_user_id: data.userId,
-				account_type: data.type,
-				account_provider: data.provider,
-			});
+    /**
+     * Updates an existing user in the Pocketbase collection.
+     * @param id - The ID of the user to update.
+     * @param data - The new user data.
+     * @returns The updated user object.
+     */
+    async updateUser({ id, ...data }) {
+      const updatedUser = await p.collection("users").update(id, {
+        user_email: data.email,
+        user_email_verified: data.emailVerified?.toString(),
+        user_image: data.image,
+        user_name: data.name,
+      });
 
-			return {
-				providerAccountId: data.providerAccountId,
-				providerId: data.providerId,
-				userId: data.userId,
-				type: data.type,
-				provider: data.provider,
-			} satisfies AdapterAccount;
-		},
+      return {
+        email: updatedUser.user_email,
+        emailVerified: new Date(updatedUser.user_email_verified),
+        id: updatedUser.id,
+        image: updatedUser.user_image,
+        name: updatedUser.user_name,
+      } satisfies AdapterUser;
+    },
 
-		/**
-		 * Unlinks an account by its provider account ID.
-		 * @param provider_providerAccountId - The provider account ID.
-		 * @throws Error if the account is not found.
-		 */
-		async unlinkAccount(providerProviderAccountId) {
-			const account = await p
-				.collection("accounts")
-				.getFirstListItem(
-					`account_provider_account_id = "${providerProviderAccountId.providerAccountId}" && account_provider = "${providerProviderAccountId.provider}"`,
-				);
+    /**
+     * Deletes a user by their ID.
+     * @param id - The ID of the user to delete.
+     */
+    deleteUser: (id) => {
+      p.collection("users").delete(id);
+      return void 0;
+    },
 
-			// Check if the account exists
-			if (!account) {
-				throw new Error("Account not found");
-			}
+    /**
+     * Links an account to a user.
+     * @param data - The account data to link.
+     */
+    linkAccount: (data) => {
+      p.collection("accounts").create({
+        account_provider_account_id: data.providerAccountId,
+        account_provider_id: data.providerId,
+        account_user_id: data.userId,
+        account_type: data.type,
+        account_provider: data.provider,
+      });
 
-			p.collection("accounts").delete(account.id);
+      return {
+        providerAccountId: data.providerAccountId,
+        providerId: data.providerId,
+        userId: data.userId,
+        type: data.type,
+        provider: data.provider,
+      } satisfies AdapterAccount;
+    },
 
-			return {
-				providerAccountId: account.account_provider_account_id,
-				providerId: account.account_provider_id,
-				userId: account.account_user_id[0],
-				type: account.account_type,
-				provider: account.account_provider,
-			} satisfies AdapterAccount;
-		},
+    /**
+     * Unlinks an account by its provider account ID.
+     * @param provider_providerAccountId - The provider account ID.
+     * @throws Error if the account is not found.
+     */
+    async unlinkAccount(providerProviderAccountId) {
+      const account = await p
+        .collection("accounts")
+        .getFirstListItem(
+          `account_provider_account_id = "${providerProviderAccountId.providerAccountId}" && account_provider = "${providerProviderAccountId.provider}"`
+        );
 
-		/**
-		 * Retrieves a session and the associated user by session token.
-		 * @param sessionToken - The session token.
-		 * @returns An object containing session and user details.
-		 * @throws Error if the session is not found.
-		 */
-		getSessionAndUser: async (sessionToken) => {
-			const session = await p
-				.collection("sessions")
-				.getFirstListItem(`session_session_token = "${sessionToken}"`);
+      // Check if the account exists
+      if (!account) {
+        throw new Error("Account not found");
+      }
 
-			process.stdout.write(`Session: ${JSON.stringify(session)}\n`);
+      p.collection("accounts").delete(account.id);
 
-			// Check if the session exists
-			if (!session) {
-				throw new Error("Session not found");
-			}
+      return {
+        providerAccountId: account.account_provider_account_id,
+        providerId: account.account_provider_id,
+        userId: account.account_user_id[0],
+        type: account.account_type,
+        provider: account.account_provider,
+      } satisfies AdapterAccount;
+    },
 
-			// Get the related user using the session_user_id
-			const userId = session.session_user_id;
-			const user = await p.collection("users").getOne(userId[0]);
+    /**
+     * Retrieves a session and the associated user by session token.
+     * @param sessionToken - The session token.
+     * @returns An object containing session and user details.
+     * @throws Error if the session is not found.
+     */
+    getSessionAndUser: async (sessionToken) => {
+      const session = await p
+        .collection("sessions")
+        .getFirstListItem(`session_session_token = "${sessionToken}"`);
 
-			// Return both the session and user details
-			return {
-				session: {
-					sessionToken: session.session_session_token,
-					userId: session.session_user_id[0],
-					expires: new Date(session.session_expires),
-				} satisfies AdapterSession,
-				user: {
-					email: user.user_email,
-					emailVerified: new Date(user.user_email_verified),
-					id: user.id,
-					image: user.user_image,
-					name: user.user_name,
-				} satisfies AdapterUser,
-			};
-		},
+      process.stdout.write(`Session: ${JSON.stringify(session)}\n`);
 
-		/**
-		 * Creates a new session for a user.
-		 * @param data - The session data to create.
-		 * @returns The created session object.
-		 */
-		createSession: async (data) => {
-			const session = await p.collection("sessions").create({
-				session_expires: data.expires,
-				session_session_token: data.sessionToken,
-				session_user_id: data.userId,
-			});
+      // Check if the session exists
+      if (!session) {
+        throw new Error("Session not found");
+      }
 
-			return {
-				sessionToken: session.session_session_token,
-				userId: data.userId,
-				expires: new Date(session.session_expires),
-			};
-		},
+      // Get the related user using the session_user_id
+      const userId = session.session_user_id;
+      const user = await p.collection("users").getOne(userId[0]);
 
-		/**
-		 * Updates an existing session.
-		 * @param sessionToken - The current session token.
-		 * @param data - The new session data.
-		 * @returns The updated session object.
-		 * @throws Error if the session is not found.
-		 */
-		updateSession: async ({ sessionToken, ...data }) => {
-			const session = await p
-				.collection("sessions")
-				.getFirstListItem(`session_session_token = "${sessionToken}"`);
+      // Return both the session and user details
+      return {
+        session: {
+          sessionToken: session.session_session_token,
+          userId: session.session_user_id[0],
+          expires: new Date(session.session_expires),
+        } satisfies AdapterSession,
+        user: {
+          email: user.user_email,
+          emailVerified: new Date(user.user_email_verified),
+          id: user.id,
+          image: user.user_image,
+          name: user.user_name,
+        } satisfies AdapterUser,
+      };
+    },
 
-			// Check if the session exists
-			if (!session) {
-				throw new Error("Session not found");
-			}
+    /**
+     * Creates a new session for a user.
+     * @param data - The session data to create.
+     * @returns The created session object.
+     */
+    createSession: async (data) => {
+      const session = await p.collection("sessions").create({
+        session_expires: data.expires,
+        session_session_token: data.sessionToken,
+        session_user_id: data.userId,
+      });
 
-			// Update the session with new data
-			const updatedSession = await p.collection("sessions").update(session.id, {
-				session_expires: data.expires,
-				session_session_token: sessionToken,
-				session_user_id: data.userId,
-			});
+      return {
+        sessionToken: session.session_session_token,
+        userId: data.userId,
+        expires: new Date(session.session_expires),
+      };
+    },
 
-			// Return the updated session
-			return {
-				sessionToken: updatedSession.session_session_token,
-				userId: updatedSession.session_user_id[0],
-				expires: new Date(updatedSession.session_expires),
-			} satisfies AdapterSession;
-		},
+    /**
+     * Updates an existing session.
+     * @param sessionToken - The current session token.
+     * @param data - The new session data.
+     * @returns The updated session object.
+     * @throws Error if the session is not found.
+     */
+    updateSession: async ({ sessionToken, ...data }) => {
+      const session = await p
+        .collection("sessions")
+        .getFirstListItem(`session_session_token = "${sessionToken}"`);
 
-		/**
-		 * Deletes a session by its token.
-		 * @param sessionToken - The session token to delete.
-		 * @throws Error if the session is not found.
-		 */
-		deleteSession: async (sessionToken) => {
-			const session = await p
-				.collection("sessions")
-				.getFirstListItem(`session_session_token = "${sessionToken}"`);
+      // Check if the session exists
+      if (!session) {
+        throw new Error("Session not found");
+      }
 
-			// Check if the session exists
-			if (!session) {
-				throw new Error("Session not found");
-			}
+      // Update the session with new data
+      const updatedSession = await p.collection("sessions").update(session.id, {
+        session_expires: data.expires,
+        session_session_token: sessionToken,
+        session_user_id: data.userId,
+      });
 
-			p.collection("sessions").delete(session.id);
-			return {
-				sessionToken: session.session_session_token,
-				userId: session.session_user_id[0],
-				expires: new Date(session.session_expires),
-			} satisfies AdapterSession;
-		},
+      // Return the updated session
+      return {
+        sessionToken: updatedSession.session_session_token,
+        userId: updatedSession.session_user_id[0],
+        expires: new Date(updatedSession.session_expires),
+      } satisfies AdapterSession;
+    },
 
-		/**
-		 * Creates a new verification token.
-		 * @param identifier - The identifier for the token (e.g., email).
-		 * @param token - The actual token string.
-		 * @param expires - The expiration date of the token.
-		 * @returns The created verification token object.
-		 */
-		async createVerificationToken({ identifier, token, expires }) {
-			// Create a new verification token entry in the Pocketbase collection
-			const verificationToken = await p
-				.collection("verification_tokens")
-				.create({
-					verification_identifier: identifier,
-					verification_token: token,
-					verification_expires: expires.toISOString(), // Make sure expires is a valid date string
-				});
+    /**
+     * Deletes a session by its token.
+     * @param sessionToken - The session token to delete.
+     * @throws Error if the session is not found.
+     */
+    deleteSession: async (sessionToken) => {
+      const session = await p
+        .collection("sessions")
+        .getFirstListItem(`session_session_token = "${sessionToken}"`);
 
-			// Return the created token data
-			return {
-				identifier: verificationToken.verification_identifier,
-				token: verificationToken.verification_token,
-				expires: new Date(verificationToken.verification_expires),
-			};
-		},
+      // Check if the session exists
+      if (!session) {
+        throw new Error("Session not found");
+      }
 
-		/**
-		 * Uses a verification token to validate it and delete it afterward.
-		 * @param identifier_token - The identifier for the token.
-		 * @returns The valid verification token or null if invalid or expired.
-		 */
-		async useVerificationToken(identifierToken) {
-			try {
-				// Fetch the verification token using the identifier_token
-				const verificationToken = await p
-					.collection("verification_tokens")
-					.getFirstListItem(
-						`verification_identifier = "${identifierToken.identifier}" && verification_token = "${identifierToken.token}"`,
-					);
+      p.collection("sessions").delete(session.id);
+      return {
+        sessionToken: session.session_session_token,
+        userId: session.session_user_id[0],
+        expires: new Date(session.session_expires),
+      } satisfies AdapterSession;
+    },
 
-				// Check if the verification token exists
-				if (!verificationToken) {
-					return null; // Token not found, return null
-				}
+    /**
+     * Creates a new verification token.
+     * @param identifier - The identifier for the token (e.g., email).
+     * @param token - The actual token string.
+     * @param expires - The expiration date of the token.
+     * @returns The created verification token object.
+     */
+    async createVerificationToken({ identifier, token, expires }) {
+      // Create a new verification token entry in the Pocketbase collection
+      const verificationToken = await p
+        .collection("verification_tokens")
+        .create({
+          verification_identifier: identifier,
+          verification_token: token,
+          verification_expires: expires.toISOString(), // Make sure expires is a valid date string
+        });
 
-				// Check if the token has expired
-				const now = new Date();
-				const expires = new Date(verificationToken.verification_expires);
-				if (now > expires) {
-					return null; // Token has expired, return null
-				}
+      // Return the created token data
+      return {
+        identifier: verificationToken.verification_identifier,
+        token: verificationToken.verification_token,
+        expires: new Date(verificationToken.verification_expires),
+      };
+    },
 
-				// Delete the token after using it
-				await p.collection("verification_tokens").delete(verificationToken.id);
+    /**
+     * Uses a verification token to validate it and delete it afterward.
+     * @param identifier_token - The identifier for the token.
+     * @returns The valid verification token or null if invalid or expired.
+     */
+    async useVerificationToken(identifierToken) {
+      try {
+        // Fetch the verification token using the identifier_token
+        const verificationToken = await p
+          .collection("verification_tokens")
+          .getFirstListItem(
+            `verification_identifier = "${identifierToken.identifier}" && verification_token = "${identifierToken.token}"`
+          );
 
-				// Return the valid verification token details without the ID
-				const { id, ...validToken } = verificationToken; // Destructure to remove ID
-				return {
-					identifier: validToken.verification_identifier,
-					token: validToken.verification_token,
-					expires: new Date(validToken.verification_expires),
-				};
-			} catch (_error) {
-				return null; // Return null in case of any other error
-			}
-		},
+        // Check if the verification token exists
+        if (!verificationToken) {
+          return null; // Token not found, return null
+        }
 
-		/**
-		 * Retrieves an account by its provider account ID and provider.
-		 * @param providerAccountId - The provider account ID.
-		 * @param provider - The provider name.
-		 * @returns The account details.
-		 * @throws Error if the account is not found.
-		 */
-		async getAccount(providerAccountId, provider) {
-			const account = await p
-				.collection("accounts")
-				.getFirstListItem(
-					`account_provider_account_id = "${providerAccountId}" && account_provider = "${provider}"`,
-				);
+        // Check if the token has expired
+        const now = new Date();
+        const expires = new Date(verificationToken.verification_expires);
+        if (now > expires) {
+          return null; // Token has expired, return null
+        }
 
-			process.stdout.write(`Account: ${JSON.stringify(account)}\n`);
+        // Delete the token after using it
+        await p.collection("verification_tokens").delete(verificationToken.id);
 
-			// Check if the account exists
-			if (!account) {
-				throw new Error("Account not found");
-			}
+        // Return the valid verification token details without the ID
+        const { id, ...validToken } = verificationToken; // Destructure to remove ID
+        return {
+          identifier: validToken.verification_identifier,
+          token: validToken.verification_token,
+          expires: new Date(validToken.verification_expires),
+        };
+      } catch (_error) {
+        return null; // Return null in case of any other error
+      }
+    },
 
-			// Return the account details
-			return {
-				userId: account.account_user_id[0],
-				providerId: account.account_provider,
-				providerAccountId: account.account_provider_account_id,
-				type: account.account_type as AdapterAccountType,
-				provider: account.account_provider,
-			} satisfies AdapterAccount;
-		},
+    /**
+     * Retrieves an account by its provider account ID and provider.
+     * @param providerAccountId - The provider account ID.
+     * @param provider - The provider name.
+     * @returns The account details.
+     * @throws Error if the account is not found.
+     */
+    async getAccount(providerAccountId, provider) {
+      const account = await p
+        .collection("accounts")
+        .getFirstListItem(
+          `account_provider_account_id = "${providerAccountId}" && account_provider = "${provider}"`
+        );
 
-		/**
-		 * Creates a new authenticator for a user.
-		 * @param authenticator - The authenticator data.
-		 * @returns The created authenticator object.
-		 */
-		async createAuthenticator(authenticator) {
-			const newAuthenticator = await p.collection("authenticators").create({
-				authenticator_credential_id: authenticator.credentialID,
-				authenticator_user_id: authenticator.userId, // Ensure this is an array if required by your schema
-				authenticator_provider_account_id: authenticator.providerAccountId,
-				authenticator_credential_public_key: authenticator.credentialPublicKey,
-				authenticator_counter: authenticator.counter,
-				authenticator_credential_device_type:
-					authenticator.credentialDeviceType,
-				authenticator_credential_backed_up: authenticator.credentialBackedUp,
-				authenticator_transports: authenticator.transports,
-			});
+      process.stdout.write(`Account: ${JSON.stringify(account)}\n`);
 
-			return {
-				credentialID: newAuthenticator.authenticator_credential_id,
-				userId: newAuthenticator.authenticator_user_id[0],
-				providerAccountId: newAuthenticator.authenticator_provider_account_id,
-				credentialPublicKey:
-					newAuthenticator.authenticator_credential_public_key,
-				counter: newAuthenticator.authenticator_counter,
-				credentialDeviceType:
-					newAuthenticator.authenticator_credential_device_type,
-				credentialBackedUp: newAuthenticator.authenticator_credential_backed_up,
-				transports: newAuthenticator.authenticator_transports,
-			} satisfies AdapterAuthenticator;
-		},
+      // Check if the account exists
+      if (!account) {
+        throw new Error("Account not found");
+      }
 
-		/**
-		 * Retrieves an authenticator by its credential ID.
-		 * @param credentialID - The ID of the authenticator.
-		 * @returns The authenticator object.
-		 * @throws Error if the authenticator is not found.
-		 */
-		async getAuthenticator(credentialId) {
-			const authenticator = await p
-				.collection("authenticators")
-				.getFirstListItem(`authenticator_credential_id = "${credentialId}"`);
+      // Return the account details
+      return {
+        userId: account.account_user_id[0],
+        providerId: account.account_provider,
+        providerAccountId: account.account_provider_account_id,
+        type: account.account_type as AdapterAccountType,
+        provider: account.account_provider,
+      } satisfies AdapterAccount;
+    },
 
-			// Check if the authenticator exists
-			if (!authenticator) {
-				throw new Error("Authenticator not found");
-			}
+    /**
+     * Creates a new authenticator for a user.
+     * @param authenticator - The authenticator data.
+     * @returns The created authenticator object.
+     */
+    async createAuthenticator(authenticator) {
+      const newAuthenticator = await p.collection("authenticators").create({
+        authenticator_credential_id: authenticator.credentialID,
+        authenticator_user_id: authenticator.userId, // Ensure this is an array if required by your schema
+        authenticator_provider_account_id: authenticator.providerAccountId,
+        authenticator_credential_public_key: authenticator.credentialPublicKey,
+        authenticator_counter: authenticator.counter,
+        authenticator_credential_device_type:
+          authenticator.credentialDeviceType,
+        authenticator_credential_backed_up: authenticator.credentialBackedUp,
+        authenticator_transports: authenticator.transports,
+      });
 
-			// Return the authenticator details
-			return {
-				credentialID: authenticator.id,
-				userId: authenticator.authenticator_user_id[0],
-				providerAccountId: authenticator.authenticator_provider_account_id,
-				credentialPublicKey: authenticator.authenticator_credential_public_key,
-				counter: authenticator.authenticator_counter,
-				credentialDeviceType:
-					authenticator.authenticator_credential_device_type,
-				credentialBackedUp: authenticator.authenticator_credential_backed_up,
-				transports: authenticator.authenticator_transports,
-			} satisfies AdapterAuthenticator;
-		},
+      return {
+        credentialID: newAuthenticator.authenticator_credential_id,
+        userId: newAuthenticator.authenticator_user_id[0],
+        providerAccountId: newAuthenticator.authenticator_provider_account_id,
+        credentialPublicKey:
+          newAuthenticator.authenticator_credential_public_key,
+        counter: newAuthenticator.authenticator_counter,
+        credentialDeviceType:
+          newAuthenticator.authenticator_credential_device_type,
+        credentialBackedUp: newAuthenticator.authenticator_credential_backed_up,
+        transports: newAuthenticator.authenticator_transports,
+      } satisfies AdapterAuthenticator;
+    },
 
-		/**
-		 * Lists authenticators associated with a user ID.
-		 * @param userId - The user ID to filter authenticators.
-		 * @returns An array of authenticator objects.
-		 */
-		async listAuthenticatorsByUserId(userId) {
-			const authenticators = await p
-				.collection("authenticators")
-				.getFullList(200, {
-					filter: `authenticator_user_id = "${userId}"`,
-				});
+    /**
+     * Retrieves an authenticator by its credential ID.
+     * @param credentialID - The ID of the authenticator.
+     * @returns The authenticator object.
+     * @throws Error if the authenticator is not found.
+     */
+    async getAuthenticator(credentialId) {
+      const authenticator = await p
+        .collection("authenticators")
+        .getFirstListItem(`authenticator_credential_id = "${credentialId}"`);
 
-			// Return the list of authenticators
-			return authenticators.map(
-				(authenticator) =>
-					({
-						credentialID: authenticator.id,
-						providerAccountId: authenticator.authenticator_provider_account_id,
-						credentialPublicKey:
-							authenticator.authenticator_credential_public_key,
-						counter: authenticator.authenticator_counter,
-						credentialDeviceType:
-							authenticator.authenticator_credential_device_type,
-						credentialBackedUp:
-							authenticator.authenticator_credential_backed_up,
-						transports: authenticator.authenticator_transports,
-						userId: authenticator.authenticator_user_id[0],
-					}) satisfies AdapterAuthenticator,
-			);
-		},
+      // Check if the authenticator exists
+      if (!authenticator) {
+        throw new Error("Authenticator not found");
+      }
 
-		/**
-		 * Updates the counter for an authenticator.
-		 * @param credentialID - The ID of the authenticator to update.
-		 * @param counter - The new counter value.
-		 * @returns The updated authenticator object.
-		 * @throws Error if the authenticator is not found.
-		 */
-		async updateAuthenticatorCounter(credentialId, counter) {
-			const authenticator = await p
-				.collection("authenticators")
-				.getFirstListItem(`authenticator_credential_id = "${credentialId}"`);
+      // Return the authenticator details
+      return {
+        credentialID: authenticator.id,
+        userId: authenticator.authenticator_user_id[0],
+        providerAccountId: authenticator.authenticator_provider_account_id,
+        credentialPublicKey: authenticator.authenticator_credential_public_key,
+        counter: authenticator.authenticator_counter,
+        credentialDeviceType:
+          authenticator.authenticator_credential_device_type,
+        credentialBackedUp: authenticator.authenticator_credential_backed_up,
+        transports: authenticator.authenticator_transports,
+      } satisfies AdapterAuthenticator;
+    },
 
-			// Check if the authenticator exists
-			if (!authenticator) {
-				throw new Error("Authenticator not found");
-			}
+    /**
+     * Lists authenticators associated with a user ID.
+     * @param userId - The user ID to filter authenticators.
+     * @returns An array of authenticator objects.
+     */
+    async listAuthenticatorsByUserId(userId) {
+      const authenticators = await p
+        .collection("authenticators")
+        .getFullList(200, {
+          filter: `authenticator_user_id = "${userId}"`,
+        });
 
-			// Update the authenticator counter
-			const updatedAuthenticator = await p
-				.collection("authenticators")
-				.update(authenticator.id, {
-					authenticator_counter: counter,
-				});
+      // Return the list of authenticators
+      return authenticators.map(
+        (authenticator) =>
+          ({
+            credentialID: authenticator.id,
+            providerAccountId: authenticator.authenticator_provider_account_id,
+            credentialPublicKey:
+              authenticator.authenticator_credential_public_key,
+            counter: authenticator.authenticator_counter,
+            credentialDeviceType:
+              authenticator.authenticator_credential_device_type,
+            credentialBackedUp:
+              authenticator.authenticator_credential_backed_up,
+            transports: authenticator.authenticator_transports,
+            userId: authenticator.authenticator_user_id[0],
+          } satisfies AdapterAuthenticator)
+      );
+    },
 
-			// Return the updated authenticator details
-			return {
-				credentialID: updatedAuthenticator.id,
-				userId: updatedAuthenticator.authenticator_user_id[0],
-				providerAccountId:
-					updatedAuthenticator.authenticator_provider_account_id,
-				credentialPublicKey:
-					updatedAuthenticator.authenticator_credential_public_key,
-				counter: updatedAuthenticator.authenticator_counter,
-				credentialDeviceType:
-					updatedAuthenticator.authenticator_credential_device_type,
-				credentialBackedUp:
-					updatedAuthenticator.authenticator_credential_backed_up,
-				transports: updatedAuthenticator.authenticator_transports,
-			} satisfies AdapterAuthenticator;
-		},
-	};
+    /**
+     * Updates the counter for an authenticator.
+     * @param credentialID - The ID of the authenticator to update.
+     * @param counter - The new counter value.
+     * @returns The updated authenticator object.
+     * @throws Error if the authenticator is not found.
+     */
+    async updateAuthenticatorCounter(credentialId, counter) {
+      const authenticator = await p
+        .collection("authenticators")
+        .getFirstListItem(`authenticator_credential_id = "${credentialId}"`);
+
+      // Check if the authenticator exists
+      if (!authenticator) {
+        throw new Error("Authenticator not found");
+      }
+
+      // Update the authenticator counter
+      const updatedAuthenticator = await p
+        .collection("authenticators")
+        .update(authenticator.id, {
+          authenticator_counter: counter,
+        });
+
+      // Return the updated authenticator details
+      return {
+        credentialID: updatedAuthenticator.id,
+        userId: updatedAuthenticator.authenticator_user_id[0],
+        providerAccountId:
+          updatedAuthenticator.authenticator_provider_account_id,
+        credentialPublicKey:
+          updatedAuthenticator.authenticator_credential_public_key,
+        counter: updatedAuthenticator.authenticator_counter,
+        credentialDeviceType:
+          updatedAuthenticator.authenticator_credential_device_type,
+        credentialBackedUp:
+          updatedAuthenticator.authenticator_credential_backed_up,
+        transports: updatedAuthenticator.authenticator_transports,
+      } satisfies AdapterAuthenticator;
+    },
+  };
 }
