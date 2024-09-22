@@ -1,8 +1,12 @@
 # @rebackk/pocketbase-adapter
 
+---
+
 [![dependency - @rebackk/pocketbase-adapter](https://img.shields.io/badge/dependency-%40rebackk%2Fpocketbase--adapter-blue?logo=npm&logoColor=white)](https://www.npmjs.com/package/@rebackk/pocketbase-adapter)
 
-[![Package - @rebackk/pocketbase-adapter](https://img.shields.io/github/package-json/dependency-version/Rebackk-Team/pocketbase-adapter/@rebackk/pocketbase-adapter?logo=npm&logoColor=white&color=blue)](https://www.npmjs.com/package/@rebackk/pocketbase-adapter)
+[![@rebackk/pocketbase-adapter](https://github.com/Rebackk-Team/pocketbase-adapter/actions/workflows/pocketbase-adapter.yml/badge.svg)](https://github.com/Rebackk-Team/pocketbase-adapter/actions/workflows/pocketbase-adapter.yml)
+
+---
 
 ## Overview
 
