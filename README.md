@@ -101,7 +101,7 @@ NEXTAUTH_SECRET=your-secret
 
 ## Testing
 
-This package is fully tested using [AVA](https://github.com/avajs/ava). To run tests, execute:
+This package is fully tested using [node tests](https://nodejs.org/api/test.html). To run tests, execute:
 
 ```bash
 npm run test
