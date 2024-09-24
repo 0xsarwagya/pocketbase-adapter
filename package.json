@@ -32,10 +32,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.2",
-    "@biomejs/cli-linux-x64": "latest",
     "@microsoft/api-extractor": "^7.47.9",
     "@ryansonshine/commitizen": "^4.2.8",
-    "@ryansonshine/cz-conventional-changelog": "^3.3.4",
+    "@biomejs/cli-linux-x64": "latest",
+	"@ryansonshine/cz-conventional-changelog": "^3.3.4",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.0",
     "@semantic-release/github": "^10.3.5",
