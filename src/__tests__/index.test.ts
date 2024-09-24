@@ -8,11 +8,20 @@ import type {
 } from "@auth/core/adapters"; // Importing type definitions for the adapter's data structures.
 import Pocketbase from "pocketbase"; // Importing Pocketbase client.
 import { PocketbaseAdapter } from "../index.ts"; // Importing the PocketbaseAdapter that is being tested.
+import dotenv from "dotenv"; // Importing dotenv to load environment variables from a .env file.
 
-describe("PocketbaseAdapter", () => {
+// Load environment variables
+dotenv.config();
+
+describe("PocketbaseAdapter", async () => {
   // Initialize the Pocketbase client for the adapter and define the API URL
   const client: Pocketbase = new Pocketbase(
     "https://backend.rebackk.xyz/pocketbase"
+  );
+
+  await client.admins.authWithPassword(
+    process.env.PB_ADMIN_EMAIL as string,
+    process.env.PB_ADMIN_PASSWORD as string
   );
 
   // Create an instance of the PocketbaseAdapter using the Pocketbase client

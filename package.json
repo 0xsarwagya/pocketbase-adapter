@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.2",
+    "@biomejs/cli-linux-x64": "latest",
     "@microsoft/api-extractor": "^7.47.9",
     "@ryansonshine/commitizen": "^4.2.8",
     "@ryansonshine/cz-conventional-changelog": "^3.3.4",
@@ -40,17 +41,18 @@
     "@semantic-release/github": "^10.3.5",
     "@semantic-release/npm": "^12.0.1",
     "@semantic-release/release-notes-generator": "^14.0.1",
+    "@types/dotenv": "^8.2.0",
     "@types/node": "^22.5.5",
     "@types/prompts": "^2.4.9",
     "c8": "^10.1.2",
     "cspell": "^8.14.4",
+    "dotenv": "^16.4.5",
     "esbuild": "^0.23.1",
     "prompts": "^2.4.2",
     "rimraf": "^6.0.1",
     "semantic-release": "^24.1.1",
     "slugify": "^1.6.6",
-    "typescript": "^5.6.2",
-    "@biomejs/cli-linux-x64": "latest"
+    "typescript": "^5.6.2"
   },
   "dependencies": {
     "@auth/core": "^0.35.0",
