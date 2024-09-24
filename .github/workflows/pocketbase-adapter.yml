@@ -16,8 +16,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: package.json
-          cache: "npm"
-      - run: npm install && npm ci
+          cache: "pnpm"
+      - run: pnpm install && pnpm ci
 
   # lint:
   #   name: 🔬 Lint & Format
@@ -28,8 +28,8 @@ jobs:
   #     - uses: actions/setup-node@v4
   #       with:
   #         node-version-file: package.json
-  #         cache: "npm"
-  #     - run: npm install && npm ci
+  #         cache: "pnpm"
+  #     - run: pnpm install && pnpm ci
   #     - name: 🔬 Lint & Format
   #       run: node --run lint:check
 
@@ -42,9 +42,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: package.json
-          cache: "npm"
+          cache: "pnpm"
       - name: 🛡️ Audit
-        run: npm audit --audit-level=high
+        run: pnpm audit --audit-level=high
 
   spell:
     name: 🈸 Spellcheck
@@ -55,8 +55,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: package.json
-          cache: "npm"
-      - run: npm install && npm ci
+          cache: "pnpm"
+      - run: pnpm install && pnpm ci
       - name: 🈸 Spellcheck
         run: node --run spell:check
 
@@ -69,8 +69,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: package.json
-          cache: "npm"
-      - run: npm install && npm ci
+          cache: "pnpm"
+      - run: pnpm install && pnpm ci
       - name: ʦ Typecheck
         run: node --run type:check
 
@@ -83,8 +83,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: package.json
-          cache: "npm"
-      - run: npm install && npm ci
+          cache: "pnpm"
+      - run: pnpm install && pnpm ci
       - name: ⚡ Tests
         run: node --run test:coverage
         env:
@@ -100,8 +100,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: package.json
-          cache: "npm"
-      - run: npm install && npm ci
+          cache: "pnpm"
+      - run: pnpm install && pnpm ci
       - name: 🔨 Build
         run: node --run build
       - name: 🚀 Release
