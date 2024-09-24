@@ -1,5 +1,4 @@
 # @rebackk/pocketbase-adapter
-
 ---
 
 [![dependency - @rebackk/pocketbase-adapter](https://img.shields.io/badge/dependency-%40rebackk%2Fpocketbase--adapter-blue?logo=npm&logoColor=white)](https://www.npmjs.com/package/@rebackk/pocketbase-adapter)

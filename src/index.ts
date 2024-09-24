@@ -46,7 +46,11 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
      * @returns The user object.
      */
     getUser: (id) => {
-      return p.collection("users").getOne(id);
+      try {
+        return p.collection("users").getOne(id);
+      } catch (error) {
+        return null;
+      }
     },
 
     /**
@@ -55,7 +59,13 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
      * @returns The user object or null if not found.
      */
     getUserByEmail(email) {
-      return p.collection("users").getFirstListItem(`user_email = "${email}"`);
+      try {
+        return p
+          .collection("users")
+          .getFirstListItem(`user_email = "${email}"`);
+      } catch (error) {
+        return null;
+      }
     },
 
     /**
@@ -65,38 +75,42 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
      * @throws Error if the account is not found.
      */
     async getUserByAccount(providerProviderAccountId) {
-      const account = await p.collection("accounts").getList(1, 1, {
-        filter: `account_provider_account_id = "${providerProviderAccountId.providerAccountId}" && account_provider = "${providerProviderAccountId.provider}"`,
-      });
+      try {
+        const account = await p.collection("accounts").getList(1, 1, {
+          filter: `account_provider_account_id = "${providerProviderAccountId.providerAccountId}" && account_provider = "${providerProviderAccountId.provider}"`,
+        });
 
-      process.stdout.write(`User ID: ${JSON.stringify(account)}\n`);
+        process.stdout.write(`User ID: ${JSON.stringify(account)}\n`);
 
-      // Check if the account exists
-      if (!account || !account.items || account.items.length === 0) {
-        throw new Error("Account not found");
+        // Check if the account exists
+        if (!account || !account.items || account.items.length === 0) {
+          return null;
+        }
+
+        // Get the related user using the account_user_id
+        const userId = account.items
+          ? account.items[0]
+            ? account.items[0].account_user_id
+            : null
+          : null;
+
+        if (!userId) {
+          return null;
+        }
+
+        const user = await p.collection("users").getOne(userId[0]);
+
+        // Return the user details
+        return {
+          email: user.user_email,
+          emailVerified: new Date(user.user_email_verified),
+          id: user.id,
+          image: user.user_image,
+          name: user.user_name,
+        } satisfies AdapterUser;
+      } catch (error) {
+        return null;
       }
-
-      // Get the related user using the account_user_id
-      const userId = account.items
-        ? account.items[0]
-          ? account.items[0].account_user_id
-          : null
-        : null;
-
-      if (!userId) {
-        throw new Error("Account not found");
-      }
-
-      const user = await p.collection("users").getOne(userId[0]);
-
-      // Return the user details
-      return {
-        email: user.user_email,
-        emailVerified: new Date(user.user_email_verified),
-        id: user.id,
-        image: user.user_image,
-        name: user.user_name,
-      } satisfies AdapterUser;
     },
 
     /**
@@ -126,17 +140,25 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
      * Deletes a user by their ID.
      * @param id - The ID of the user to delete.
      */
-    deleteUser: (id) => {
-      p.collection("users").delete(id);
-      return void 0;
+    deleteUser: async (id) => {
+      const user = await p.collection("users").getOne(id);
+      await p.collection("users").delete(user.id);
+
+      return {
+        email: user.user_email,
+        emailVerified: new Date(user.user_email_verified),
+        id: user.id,
+        image: user.user_image,
+        name: user.user_name,
+      } satisfies AdapterUser;
     },
 
     /**
      * Links an account to a user.
      * @param data - The account data to link.
      */
-    linkAccount: (data) => {
-      p.collection("accounts").create({
+    linkAccount: async (data) => {
+      await p.collection("accounts").create({
         account_provider_account_id: data.providerAccountId,
         account_provider_id: data.providerId,
         account_user_id: data.userId,
@@ -196,7 +218,7 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
 
       // Check if the session exists
       if (!session) {
-        throw new Error("Session not found");
+        return null;
       }
 
       // Get the related user using the session_user_id
@@ -253,7 +275,7 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
 
       // Check if the session exists
       if (!session) {
-        throw new Error("Session not found");
+        return null;
       }
 
       // Update the session with new data
@@ -283,7 +305,7 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
 
       // Check if the session exists
       if (!session) {
-        throw new Error("Session not found");
+        return null;
       }
 
       p.collection("sessions").delete(session.id);
@@ -303,20 +325,24 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
      */
     async createVerificationToken({ identifier, token, expires }) {
       // Create a new verification token entry in the Pocketbase collection
-      const verificationToken = await p
-        .collection("verification_tokens")
-        .create({
-          verification_identifier: identifier,
-          verification_token: token,
-          verification_expires: expires.toISOString(), // Make sure expires is a valid date string
-        });
+      try {
+        const verificationToken = await p
+          .collection("verification_tokens")
+          .create({
+            verification_identifier: identifier,
+            verification_token: token,
+            verification_expires: expires.toISOString(), // Make sure expires is a valid date string
+          });
 
-      // Return the created token data
-      return {
-        identifier: verificationToken.verification_identifier,
-        token: verificationToken.verification_token,
-        expires: new Date(verificationToken.verification_expires),
-      };
+        // Return the created token data
+        return {
+          identifier: verificationToken.verification_identifier,
+          token: verificationToken.verification_token,
+          expires: new Date(verificationToken.verification_expires),
+        };
+      } catch (error) {
+        return null;
+      }
     },
 
     /**
@@ -378,7 +404,7 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
 
       // Check if the account exists
       if (!account) {
-        throw new Error("Account not found");
+        return null;
       }
 
       // Return the account details
@@ -436,7 +462,7 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
 
       // Check if the authenticator exists
       if (!authenticator) {
-        throw new Error("Authenticator not found");
+        return null;
       }
 
       // Return the authenticator details
