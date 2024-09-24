@@ -141,16 +141,20 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
      * @param id - The ID of the user to delete.
      */
     deleteUser: async (id) => {
-      const user = await p.collection("users").getOne(id);
-      await p.collection("users").delete(user.id);
+      try {
+        const user = await p.collection("users").getOne(id);
+        await p.collection("users").delete(user.id);
 
-      return {
-        email: user.user_email,
-        emailVerified: new Date(user.user_email_verified),
-        id: user.id,
-        image: user.user_image,
-        name: user.user_name,
-      } satisfies AdapterUser;
+        return {
+          email: user.user_email,
+          emailVerified: new Date(user.user_email_verified),
+          id: user.id,
+          image: user.user_image,
+          name: user.user_name,
+        } satisfies AdapterUser;
+      } catch (error) {
+        return null;
+      }
     },
 
     /**
