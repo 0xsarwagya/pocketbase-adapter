@@ -58,9 +58,9 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
      * @param email - The email of the user.
      * @returns The user object or null if not found.
      */
-    getUserByEmail(email) {
+    async getUserByEmail(email) {
       try {
-        return p
+        return await p
           .collection("users")
           .getFirstListItem(`user_email = "${email}"`);
       } catch (error) {
