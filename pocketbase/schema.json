@@ -65,13 +65,13 @@
 			}
 		],
 		"indexes": [
-			"CREATE UNIQUE INDEX `idx_provider_provider_account_id` ON `accounts_collection` (`account_provider`, `account_provider_account_id`)"
+			"CREATE UNIQUE INDEX `idx_provider_provider_account_id` ON `accounts_collection` (\n  `account_provider`,\n  `account_provider_account_id`\n)"
 		],
-		"listRule": null,
-		"viewRule": null,
-		"createRule": null,
-		"updateRule": null,
-		"deleteRule": null,
+		"listRule": "@request.headers.x_access_key = \"test\"",
+		"viewRule": "@request.headers.x_access_key = \"test\"",
+		"createRule": "@request.headers.x_access_key = \"test\"",
+		"updateRule": "@request.headers.x_access_key = \"test\"",
+		"deleteRule": "@request.headers.x_access_key = \"test\"",
 		"options": {}
 	},
 	{
@@ -192,13 +192,13 @@
 			}
 		],
 		"indexes": [
-			"CREATE UNIQUE INDEX `idx_user_credential_id` ON `authenticators_collection` (`authenticator_user_id`, `authenticator_credential_id`)"
+			"CREATE UNIQUE INDEX `idx_user_credential_id` ON `authenticators_collection` (\n  `authenticator_user_id`,\n  `authenticator_credential_id`\n)"
 		],
-		"listRule": null,
-		"viewRule": null,
-		"createRule": null,
-		"updateRule": null,
-		"deleteRule": null,
+		"listRule": "@request.headers.x_access_key = \"test\"",
+		"viewRule": "@request.headers.x_access_key = \"test\"",
+		"createRule": "@request.headers.x_access_key = \"test\"",
+		"updateRule": "@request.headers.x_access_key = \"test\"",
+		"deleteRule": "@request.headers.x_access_key = \"test\"",
 		"options": {}
 	},
 	{
@@ -252,11 +252,11 @@
 			}
 		],
 		"indexes": [],
-		"listRule": null,
-		"viewRule": null,
-		"createRule": null,
-		"updateRule": null,
-		"deleteRule": null,
+		"listRule": "@request.headers.x_access_key = \"test\"",
+		"viewRule": "@request.headers.x_access_key = \"test\"",
+		"createRule": "@request.headers.x_access_key = \"test\"",
+		"updateRule": "@request.headers.x_access_key = \"test\"",
+		"deleteRule": "@request.headers.x_access_key = \"test\"",
 		"options": {}
 	},
 	{
@@ -321,11 +321,11 @@
 			}
 		],
 		"indexes": [],
-		"listRule": null,
-		"viewRule": null,
-		"createRule": null,
-		"updateRule": null,
-		"deleteRule": null,
+		"listRule": "@request.headers.x_access_key = \"test\"",
+		"viewRule": "@request.headers.x_access_key = \"test\"",
+		"createRule": "@request.headers.x_access_key = \"test\"",
+		"updateRule": "@request.headers.x_access_key = \"test\"",
+		"deleteRule": "@request.headers.x_access_key = \"test\"",
 		"options": {}
 	},
 	{
@@ -377,13 +377,13 @@
 			}
 		],
 		"indexes": [
-			"CREATE UNIQUE INDEX `idx_identifier_token` ON `verification_tokens_collection` (`verification_identifier`, `verification_token`)"
+			"CREATE UNIQUE INDEX `idx_identifier_token` ON `verification_tokens_collection` (\n  `verification_identifier`,\n  `verification_token`\n)"
 		],
-		"listRule": null,
-		"viewRule": null,
-		"createRule": null,
-		"updateRule": null,
-		"deleteRule": null,
+		"listRule": "@request.headers.x_access_key = \"test\"",
+		"viewRule": "@request.headers.x_access_key = \"test\"",
+		"createRule": "@request.headers.x_access_key = \"test\"",
+		"updateRule": "@request.headers.x_access_key = \"test\"",
+		"deleteRule": "@request.headers.x_access_key = \"test\"",
 		"options": {}
 	}
 ]

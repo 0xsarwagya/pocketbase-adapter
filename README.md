@@ -1,4 +1,7 @@
 # @rebackk/pocketbase-adapter
+
+`@rebackk/pocketbase-adapter` is an adapter that integrates [PocketBase](https://pocketbase.io) with [NextAuth.js](https://next-auth.js.org) for authentication, enabling seamless user management and session handling using PocketBase's collections and features.
+
 ---
 
 [![dependency - @rebackk/pocketbase-adapter](https://img.shields.io/badge/dependency-%40rebackk%2Fpocketbase--adapter-blue?logo=npm&logoColor=white)](https://www.npmjs.com/package/@rebackk/pocketbase-adapter)
@@ -13,6 +16,7 @@
 
 ## Pocketbase Setup
 The Schema Used By Us For The Project is Mentioned [Here](https://github.com/Rebackk-Team/pocketbase-adapter/blob/main/pocketbase/schema.json)
+> We are using a normal header check as of now! Will implement more methods as well as Custom Schema Support In The Next major Version
 > PS : Setup Roles According To Your Needs
 
 ## Features
@@ -24,7 +28,7 @@ The Schema Used By Us For The Project is Mentioned [Here](https://github.com/Reb
 
 ## Installation
 
-You can install the package via npm or yarn.
+You can install the package via npm, yarn and pnpm.
 
 ```bash
 npm install @rebackk/pocketbase-adapter

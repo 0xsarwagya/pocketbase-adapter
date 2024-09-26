@@ -6,6 +6,9 @@
 	"linter": {
 		"rules": {
 			"all": false,
+			"style": {
+				"noParameterAssign": "off"
+			},
 			"correctness": {
 				"noNodejsModules": "off"
 			}
