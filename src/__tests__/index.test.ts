@@ -5,54 +5,80 @@ import type {
   AdapterSession,
   AdapterUser,
   VerificationToken,
-} from "@auth/core/adapters"; // Importing type definitions for the adapter's data structures.
+} from "@auth/core/adapters"; // Importing types from the adapter.
 import Pocketbase from "pocketbase"; // Importing Pocketbase client.
 import { PocketbaseAdapter } from "../index.ts"; // Importing the PocketbaseAdapter that is being tested.
-import dotenv from "dotenv"; // Importing dotenv to load environment variables from a .env file.
-
-// Load environment variables
-dotenv.config();
+import { throws } from "node:assert";
 
 describe("PocketbaseAdapter", async () => {
-  // Initialize the Pocketbase client for the adapter and define the API URL
-  const client: Pocketbase = new Pocketbase(
-    "https://backend.rebackk.xyz/pocketbase"
-  );
-
-  await client.admins.authWithPassword(
-    process.env.PB_ADMIN_EMAIL as string,
-    process.env.PB_ADMIN_PASSWORD as string
-  );
-
-  // Create an instance of the PocketbaseAdapter using the Pocketbase client
-  const adapter: ReturnType<typeof PocketbaseAdapter> =
-    PocketbaseAdapter(client);
-
-  // Variable to hold the test user ID throughout the tests
+  const client: Pocketbase = new Pocketbase("http://localhost:8090");
   let testUserId = "test-user";
+
+  const adapter = PocketbaseAdapter({
+    client,
+    requiresAuth: true,
+    headers: {
+      name: "x_access_key",
+      value: "test",
+    },
+  });
 
   // After all tests are run, ensure the test user is cleaned up by checking if the user exists and deleting it.
   after(async () => {
     const user = await adapter.getUser?.(testUserId); // Check if the user exists
     if (user) {
       await client.collection("users").delete(testUserId); // If user exists, delete it
-      process.stdout.write("User deleted\n"); // Output confirmation of user deletion
     }
   });
 
+  it("should return status 200", async () => {
+    const health = await client.health.check();
+    equal(health.code, 200);
+  });
+
+  it("should throw an error if headers are not set", async () => {
+    throws(() => {
+      // biome-ignore lint/suspicious/noExplicitAny : test case
+      PocketbaseAdapter({ client, requiresAuth: true } as any);
+    }, new Error("Missing headers for authenticated client"));
+  });
+
+  it("should return an instance of PocketbaseAdapter", async () => {
+    const adapterFunctions = [
+      "createUser",
+      "getUser",
+      "getUserByEmail",
+      "getUserByAccount",
+      "updateUser",
+      "deleteUser",
+      "linkAccount",
+      "unlinkAccount",
+      "getSessionAndUser",
+      "createSession",
+      "updateSession",
+      "deleteSession",
+      "createVerificationToken",
+      "useVerificationToken",
+      "getAccount",
+    ];
+
+    for (const func of adapterFunctions) {
+      // @ts-ignore
+      equal(typeof adapter[func], "function");
+    }
+  });
   // Describe block for user management-related tests
   describe("User Management", () => {
     it("should create a new user", async () => {
-      // Define a mock user that satisfies the AdapterUser type
       const mockUser = {
         email: "test@example.com",
         emailVerified: new Date(),
-        id: "test",
+        id: "test", // Initial ID, but will be overridden after creation
         image: "https://example.com/image.jpg",
         name: "Test User",
       } satisfies AdapterUser;
 
-      // Attempt to create the user using the adapter and store the result
+      // Attempt to create the user using the adapter
       const createdUser = (await adapter.createUser?.(mockUser)) || null;
 
       // Error handling if the user creation fails
@@ -61,7 +87,7 @@ describe("PocketbaseAdapter", async () => {
       }
 
       // Save the created user ID for future tests
-      testUserId = createdUser.id;
+      testUserId = createdUser.id; // Update testUserId to the created user's ID
 
       // Assert that the created user's email matches the mock data
       equal(createdUser.email, mockUser.email);

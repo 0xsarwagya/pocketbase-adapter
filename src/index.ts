@@ -6,15 +6,54 @@ import type {
   AdapterSession,
   AdapterUser,
 } from "@auth/core/adapters";
-import type Pocketbase from "pocketbase";
+import type {
+  CreateClientWithAuthOptions,
+  CreateClientWithoutAuthOptions,
+} from "./types/index.ts";
+import Pocketbase from "pocketbase";
 
 /**
  * Creates a Pocketbase adapter for NextAuth.
- * @param client - The Pocketbase client instance.
+ * @param client {Pocketbase | CreateClientWithAuthOptions | CreateClientWithoutAuthOptions} - The Pocketbase client instance or options to create one.
  * @returns An adapter implementing the NextAuth Adapter interface.
  */
-export function PocketbaseAdapter(client: Pocketbase): Adapter {
-  const p = client;
+export function PocketbaseAdapter(
+  optionsOrClient:
+    | CreateClientWithAuthOptions
+    | CreateClientWithoutAuthOptions
+    | Pocketbase
+): Adapter {
+  if (optionsOrClient instanceof Pocketbase) {
+    optionsOrClient = {
+      client: optionsOrClient,
+      requiresAuth: false,
+    };
+  }
+
+  // Get the Pocketbase client instance
+  const p = optionsOrClient.client;
+
+  // Check if the client requires authentication
+  if (optionsOrClient.requiresAuth) {
+    const headers = optionsOrClient.headers;
+    // Check if the client has headers for authentication
+    if (!headers) {
+      throw new Error("Missing headers for authenticated client");
+    }
+
+    // Add a beforeSend hook to include the required headers
+    p.beforeSend = (url, option) => {
+      option.headers = {
+        ...option.headers,
+        [headers.name]: headers.value,
+      };
+
+      return {
+        url,
+        option,
+      };
+    };
+  }
 
   return {
     /**
@@ -79,8 +118,6 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
         const account = await p.collection("accounts").getList(1, 1, {
           filter: `account_provider_account_id = "${providerProviderAccountId.providerAccountId}" && account_provider = "${providerProviderAccountId.provider}"`,
         });
-
-        process.stdout.write(`User ID: ${JSON.stringify(account)}\n`);
 
         // Check if the account exists
         if (!account || !account.items || account.items.length === 0) {
@@ -218,8 +255,6 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
         .collection("sessions")
         .getFirstListItem(`session_session_token = "${sessionToken}"`);
 
-      process.stdout.write(`Session: ${JSON.stringify(session)}\n`);
-
       // Check if the session exists
       if (!session) {
         return null;
@@ -262,7 +297,7 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
         sessionToken: session.session_session_token,
         userId: data.userId,
         expires: new Date(session.session_expires),
-      };
+      } satisfies AdapterSession;
     },
 
     /**
@@ -403,8 +438,6 @@ export function PocketbaseAdapter(client: Pocketbase): Adapter {
         .getFirstListItem(
           `account_provider_account_id = "${providerAccountId}" && account_provider = "${provider}"`
         );
-
-      process.stdout.write(`Account: ${JSON.stringify(account)}\n`);
 
       // Check if the account exists
       if (!account) {
