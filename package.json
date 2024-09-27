@@ -18,8 +18,8 @@
   },
   "homepage": "https://docs.rebackk.xyz/docs/pocketbase-adapter",
   "repository": {
-	"type": "git",
-	"url": "https://github.com/Rebackk-Team/pocketbase-adapter.git"
+    "type": "git",
+    "url": "https://github.com/Rebackk-Team/pocketbase-adapter.git"
   },
   "scripts": {
     "build": "node --disable-warning=ExperimentalWarning --experimental-strip-types  ./scripts/build.ts",
@@ -38,7 +38,7 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.2",
     "@biomejs/cli-linux-x64": "latest",
-    "@microsoft/api-extractor": "^7.47.9",
+	"@microsoft/api-extractor": "^7.47.9",
     "@ryansonshine/commitizen": "^4.2.8",
     "@ryansonshine/cz-conventional-changelog": "^3.3.4",
     "@semantic-release/changelog": "^6.0.3",

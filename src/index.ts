@@ -14,7 +14,7 @@ import Pocketbase from "pocketbase";
 
 /**
  * Creates a Pocketbase adapter for NextAuth.
- * @param client {Pocketbase | CreateClientWithAuthOptions | CreateClientWithoutAuthOptions} - The Pocketbase client instance or options to create one.
+ * @param client - The Pocketbase client instance or options to create one.
  * @returns An adapter implementing the NextAuth Adapter interface.
  */
 export function PocketbaseAdapter(
@@ -589,3 +589,9 @@ export function PocketbaseAdapter(
     },
   };
 }
+
+export {
+  CreateClientWithAuthOptions,
+  CreateClientWithoutAuthOptions,
+  BaseCreateClientOptions,
+} from "./types/index.ts";

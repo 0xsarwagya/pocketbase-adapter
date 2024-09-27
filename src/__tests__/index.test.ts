@@ -9,7 +9,6 @@ import type {
 import Pocketbase from "pocketbase"; // Importing Pocketbase client.
 import { PocketbaseAdapter } from "../index.ts"; // Importing the PocketbaseAdapter that is being tested.
 import { throws } from "node:assert";
-import { type ChildProcess, spawn } from "node:child_process";
 
 describe("PocketbaseAdapter", async () => {
   const client: Pocketbase = new Pocketbase("http://localhost:8090");
