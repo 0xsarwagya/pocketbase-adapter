@@ -1,5 +1,5 @@
 import { equal } from "node:assert/strict"; // Importing strict assertion methods from Node.js to compare values.
-import { after, describe, it } from "node:test"; // Importing test helpers to structure the test cases.
+import { after, afterEach, beforeEach, describe, it } from "node:test"; // Importing test helpers to structure the test cases.
 import type {
   AdapterAccount,
   AdapterSession,
@@ -9,6 +9,7 @@ import type {
 import Pocketbase from "pocketbase"; // Importing Pocketbase client.
 import { PocketbaseAdapter } from "../index.ts"; // Importing the PocketbaseAdapter that is being tested.
 import { throws } from "node:assert";
+import { type ChildProcess, spawn } from "node:child_process";
 
 describe("PocketbaseAdapter", async () => {
   const client: Pocketbase = new Pocketbase("http://localhost:8090");
@@ -21,14 +22,6 @@ describe("PocketbaseAdapter", async () => {
       name: "x_access_key",
       value: "test",
     },
-  });
-
-  // After all tests are run, ensure the test user is cleaned up by checking if the user exists and deleting it.
-  after(async () => {
-    const user = await adapter.getUser?.(testUserId); // Check if the user exists
-    if (user) {
-      await client.collection("users").delete(testUserId); // If user exists, delete it
-    }
   });
 
   it("should return status 200", async () => {

@@ -85,6 +85,8 @@ jobs:
           node-version-file: package.json
           cache: "npm"
       - run: npm install && npm ci
+      - name: 🚀 Setup Pocketbase
+        run: chmod +x pocketbase/setupPB.sh && ./pocketbase/setupPB.sh
       - name: ⚡ Tests
         run: node --run test:coverage
 
